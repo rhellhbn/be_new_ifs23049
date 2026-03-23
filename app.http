@@ -1,0 +1,160 @@
+## Global Variable
+@BaseUrl = http://localhost:8080
+
+### ── AUTH ─────────────────────────────────────────────
+### 1. Register
+POST {{BaseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "username": "testuser",
+  "password": "password123"
+}
+
+### 2. Login
+# @name PostLogin
+POST {{BaseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "password123"
+}
+
+> {%
+    client.global.set("authToken", response.body.data.authToken);
+    client.global.set("refreshToken", response.body.data.refreshToken);
+%}
+
+### 3. Refresh Token
+POST {{BaseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{
+  "authToken": "{{authToken}}",
+  "refreshToken": "{{refreshToken}}"
+}
+
+> {%
+    client.global.set("authToken", response.body.data.authToken);
+    client.global.set("refreshToken", response.body.data.refreshToken);
+%}
+
+### 4. Logout
+POST {{BaseUrl}}/auth/logout
+Content-Type: application/json
+
+{
+  "authToken": "{{authToken}}"
+}
+
+### ── USERS ────────────────────────────────────────────
+### 5. Get Profile
+# @name GetUserMe
+GET {{BaseUrl}}/users/me
+Authorization: Bearer {{authToken}}
+
+> {%
+    client.global.set("userId", response.body.data.user.id);
+%}
+
+### 6. Update Profile
+PUT {{BaseUrl}}/users/me
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Test User Update",
+  "username": "testuser"
+}
+
+### 7. Change Password
+PUT {{BaseUrl}}/users/me/password
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "password": "password123",
+  "newPassword": "password123"
+}
+
+### 8. Upload Photo
+PUT {{BaseUrl}}/users/me/photo
+Authorization: Bearer {{authToken}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="me.png"
+Content-Type: image/png
+
+< ./uploads/examples/me.png
+--WebAppBoundary--
+
+### 9. Get Photo
+GET {{BaseUrl}}/images/users/{{userId}}
+
+### ── BOOKS ────────────────────────────────────────────
+### 10. Get All Books
+GET {{BaseUrl}}/books?search=&genre=&is_read=&page=1&perPage=10
+Authorization: Bearer {{authToken}}
+
+### 11. Add Book
+# @name PostBook
+POST {{BaseUrl}}/books
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Laskar Pelangi",
+  "author": "Andrea Hirata",
+  "description": "Novel tentang perjuangan anak-anak Belitung.",
+  "genre": "Fiksi",
+  "isbn": "978-979-1073-07-5",
+  "publisher": "Bentang Pustaka",
+  "year": 2005,
+  "isRead": false
+}
+
+> {%
+    client.global.set("bookId", response.body.data.bookId);
+%}
+
+### 12. Get Book by ID
+GET {{BaseUrl}}/books/{{bookId}}
+Authorization: Bearer {{authToken}}
+
+### 13. Update Book
+PUT {{BaseUrl}}/books/{{bookId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Laskar Pelangi",
+  "author": "Andrea Hirata",
+  "description": "Novel tentang perjuangan anak-anak Belitung.",
+  "genre": "Fiksi",
+  "isbn": "978-979-1073-07-5",
+  "publisher": "Bentang Pustaka",
+  "year": 2005,
+  "isRead": true
+}
+
+### 14. Upload Cover
+PUT {{BaseUrl}}/books/{{bookId}}/cover
+Authorization: Bearer {{authToken}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="me.png"
+Content-Type: image/png
+
+< ./uploads/examples/me.png
+--WebAppBoundary--
+
+### 15. Get Cover
+GET {{BaseUrl}}/images/books/{{bookId}}
+
+### 16. Delete Book
+DELETE {{BaseUrl}}/books/{{bookId}}
+Authorization: Bearer {{authToken}}
